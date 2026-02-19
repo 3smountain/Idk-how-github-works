@@ -4,19 +4,33 @@ Require Export UniMath.Foundations.All.
 
 Theorem comp_app { P Q R : UU } (f : P → Q) (g : Q → R) (p : P) : R.
 Proof.
-  Admitted.
-
+  set (q:= f p).
+  set (r:= g q).
+  exact r.
+Defined.
 (* Exercise 2 *)
 
 Theorem curried_proj {P Q R : UU} : (P → (Q × R)) → (P → Q).
 Proof.
-  Admitted.
+  intro f.
+  intro p.
+  set (c:= f p).
+  induction c as [q r].
+  exact q.
+Qed.
+  
 
 (* Exercise 3 *)
 
 Theorem exp : nat → nat → nat.
 Proof.
-  Admitted.
+  intro n.
+  intro m.
+  induction m.
+  - exact 1.
+  - set (q:= n*IHm).
+    exact q.
+Defined.
 
 
 Compute (exp 5 1).
@@ -33,6 +47,15 @@ Search (∏ X Y : UU, ∏ f : X → Y, ∏ x y : X, x = y → (f x) = (f y)).
 
 You can use this to find other lemmas from the library. You can use any facts without proof from the library about addition and multiplication as well as ~maponpaths~.*)
 
+Search (∏ a b c : nat, (a * b) * c = a * (b * c)).
+
 Theorem exp_hom {l m n : nat} : exp l (m + n) = (exp l m) * (exp l n).
 Proof.
-  Admitted.
+  induction m.
+  - simpl.
+    apply idpath.
+  - simpl.
+    rewrite IHm.
+    rewrite natmultassoc.
+    apply idpath.
+Defined.
