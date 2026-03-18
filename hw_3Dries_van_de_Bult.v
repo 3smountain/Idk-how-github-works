@@ -171,6 +171,3 @@ Proof.
          intro q.
          apply idpath.
 Defined.
-      
-      
-      
