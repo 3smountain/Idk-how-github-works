@@ -1,0 +1,176 @@
+Unset Universe Checking.
+Require Export UniMath.Foundations.All.
+
+(* For the following exercises you can use the following results from previous exercise sessions without proofs. *)
+
+Theorem hlevel_cumulative  {n : nat} {T : UU} (h : isofhlevel n T) : isofhlevel (S n) T.
+Proof.
+  Admitted.
+
+Lemma contr_to_path {C : UU} (h : iscontr C) (x y : C) : x = y.
+Proof.
+  Admitted.
+
+Theorem hlevelprop (n : nat) (A : UU) : isaprop (isofhlevel n A).
+Proof.
+  Admitted.
+
+(*You can/should also use `isweq_iso` and `funextsec` from the library. You should look up their types, but here is some explanation. In Unimath, a contractible map is called a weak equivalence (`weq`) this is their preferred definition for equivalence (because it's often the easiest to use). In Unimath, quasi-equivalences are called isomorphisms. `isweq_iso` turns a proof that a map is a quasi-equivalence/isomorphism and returns the proof that it is contractible/weak equivalence. `funextsec` takes a pointwise equality between to maps f,g to an equality f,g. We will talk about funextsec explicitly in lecture 6, but you don't need that explanation to start using it.*)
+
+(* Exercise 1 *)
+
+(* In the last homework you showed the two definitions of isaprop were *logically equivalent*. Now show that the definitions are *equivalent*. *)
+
+Theorem prop_thm_a {P : UU} : (isaprop P) → (∏ x y : P, x = y).
+Proof.
+  intro PProp.
+  intros p q.
+  set (c := PProp p q).
+  simpl in c.
+  induction c as [cntr _].
+  exact cntr.
+Defined.
+
+Lemma path_comp_lem {A : UU} {a b : A} (p : a = b) : idpath a = p @ !p.
+Proof.
+  induction p.
+  simpl.
+  apply idpath.
+Defined.
+
+Theorem prop_thm_b {P : UU} : (∏ x y : P, x = y) → 
+(isaprop P).
+Proof.
+  intro paths.
+  unfold isaprop.
+  unfold isofhlevel.
+  intros p q.
+  set (newpaths := λ x y : P, (paths x p) @ !(paths y p)).
+  use tpair.
+  - exact (newpaths p q).
+  - simpl.
+    intro e.
+    induction e.
+    unfold newpaths.
+    use path_comp_lem.
+Defined.
+
+Theorem prop_thm {P : UU} : (isaprop P) ≃ (∏ x y : P, x = y).
+Proof.
+  use tpair.
+  - apply prop_thm_a.
+  - use isweq_iso.
+    + apply prop_thm_b.
+    + intro x.
+      apply hlevelprop.
+    + intro y.      
+      unfold prop_thm_b.
+      unfold prop_thm_a.
+      apply funextsec.
+      intro p.
+      apply funextsec.
+      intro q.
+      induction (y p q).
+      apply pathsinv0.
+      apply path_comp_lem.
+Defined.
+
+(* Exercise 2 *)
+
+(* Show that the dependent product type former commutes with `isaprop`.*)
+
+Theorem prop_commutes_Π {A : UU} {B : A → UU} (p : ∏ x : A, isaprop (B x)) : isaprop (∏ x : A, (B x)).
+Proof.
+  apply prop_thm.
+  intro x.
+  intro y.
+  apply funextsec.
+  intro z.
+  apply p.
+Defined.
+  
+
+(* Exercise 3 *)
+
+(* Show that isweq f (is-contr f in Rijke) is a proposition. *)
+
+Theorem isweq_is_prop {A B : UU} (f : A → B) : isaprop (isweq f).
+Proof.
+  apply prop_thm.
+  intro x.
+  intro z.
+  unfold isweq in x.
+  unfold isweq in z.
+  apply funextsec.
+  intro y.
+  apply (hlevelprop 0).
+Defined.
+  
+
+(* Exercise 4 *)
+
+(* An equivalence between propositions is (equivalent to) a logical equivalence. *)
+
+(* In the last homework you showed that an equivalence between propositions is *logically equivalent* to a logical equivalence. Now show that an equivalence between propositions is *equivalent* to a logical equivalence.*)
+
+Theorem prop_equiv_to_log_equiv (P Q : hProp) : (P ≃ Q) <-> (P <-> Q).
+(* An equivalence between propositions is (logically equivalent to) a logical equivalence. *)
+Proof.
+  split.
+  - intro e.
+    induction e as [f c].
+    split.
+    + exact f.
+    + intro q.
+      unfold isweq in c.
+      set (cq := c q).
+      induction cq as [h _].
+      induction h as [p _].
+      exact p.
+  - intro b.
+    induction b as [f g].
+    induction P as [P PProp].
+    induction Q as [Q QProp].
+    simpl in *.
+    use tpair.
+    + exact f.
+    + use isweq_iso.
+      * exact g.
+      * intro p.
+        set (PProp2 := prop_thm_a PProp).
+        exact (PProp2 (g (f p)) p).
+      * intro q.
+        set (QProp2 := prop_thm_a QProp).
+        exact (QProp2 (f (g q)) q).
+Defined.
+
+Theorem equiv_of_prop {P Q : hProp} : (P ≃ Q) ≃ (P <-> Q).
+Proof.
+  use tpair.
+  - apply prop_equiv_to_log_equiv.
+  - use isweq_iso.
+    + apply prop_equiv_to_log_equiv.
+    + intro x.
+      simpl.
+      induction x as [a b].
+      apply total2_paths_equiv.
+      use tpair.
+      -- simpl.
+         apply idpath.
+      -- simpl.
+         apply isweq_is_prop.
+    + intro y.
+      simpl.
+      apply total2_paths_equiv.
+      use tpair.
+      -- simpl.
+         apply idpath.
+      -- induction y as [a b].
+         cbn.
+         apply funextsec.
+         intro q.
+         apply idpath.
+Defined.
+      
+      
+      
